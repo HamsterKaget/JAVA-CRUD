@@ -2,6 +2,7 @@ package CRUD;
 
 import java.io.*;
 import java.io.IOException;
+import java.time.Year;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -76,12 +77,119 @@ public class Main {
     
     public static void createData() throws IOException {
 
-        FileWriter fileOutput = new FileWriter("JAVA CRUD/src/CRUD/database2.txt");
+        FileWriter fileOutput = new FileWriter("JAVA CRUD/src/CRUD/database2.txt",true);
+        BufferedWriter bufferOutput = new BufferedWriter(fileOutput);
 
+        Scanner scanner = new Scanner(System.in);
+        String merk, launchingName , processor , ram , storage , battery , year;
 
+        System.out.print("Masukan Merk / Brand Handphone : ");
+        merk = scanner.nextLine().toUpperCase();
+        System.out.print("Masukan Full Nama Handphone : ");
+        launchingName = scanner.nextLine().toUpperCase();
+        System.out.print("Masukan Jenis Prosessor : ");
+        processor = scanner.nextLine();
+        System.out.print("Masukan Varian RAM : ");
+        ram = scanner.nextLine();
+        System.out.print("Masukan Varian Penyimpanan : ");
+        storage = scanner.nextLine();
+        System.out.print("Masukan Kapasitas Batterai : ");
+        battery = scanner.nextLine();
+        System.out.print("Masukan Tahun Rilis, Format=(YYYY) : ");
+        year = getYear();
+        
+        // Cek Data di Database 
+        String[] keywords = {year + "," + merk + "," + launchingName + "," + processor + "," + ram + "," + storage + "," + battery};        
+        
+        boolean isExist = cekDataDatabase(keywords, false);
+        
+        // Menulis Data Baru di database2.txt
+        if( !isExist ) {
+
+            long nomorEntry =  getEntryPerYear(merk, year) + 1;
+
+            String withoutSpace = merk.replaceAll("\\s", "");
+            String primaryKey = merk + "_" + year + "_" + nomorEntry;
+            System.out.println("\nData yang akan anda masukan adalah");
+            System.out.println("------------------------------------");
+            System.out.println("primary key       : " + primaryKey);
+            System.out.println("Tahun Rilis       : " + year);
+            System.out.println("Merk / Brand      : " + merk);
+            System.out.println("Full Hp Name      : " + launchingName);
+            System.out.println("Jenis Prossesor   : " + processor);
+            System.out.println("Kapasitas Ram     : " + ram);
+            System.out.println("Total Penyimpanan : " + storage);
+            System.out.println("Kapasitas Baterai : " + battery);
+
+            boolean isTambah = getYesorNo("Apakah anda ingin menambah data tersebut ?");
+
+            if (isTambah) {
+                bufferOutput.write(primaryKey + "," + year +"," + merk + "," + launchingName + "," + processor + "," + ram + "," + storage + "," + battery);
+                bufferOutput.newLine();
+                bufferOutput.flush();
+            
+            }
+
+        } else {
+            System.out.println("Data dari handphone tersebut sudah ada di database kami !");
+            cekDataDatabase(keywords, true);
+        }
+
+        bufferOutput.close();
+    }
+
+    public static long getEntryPerYear(String merk, String year) throws IOException {
+        FileReader fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
+        BufferedReader bufferinput = new BufferedReader(fileinput);
+
+        long entry = 0;
+        String data = bufferinput.readLine();
+        Scanner dataScanner;
+        String primaryKey;
+
+        while ( data != null ) {
+            dataScanner = new Scanner(data);
+            dataScanner.useDelimiter(",");
+            primaryKey = dataScanner.next();
+            dataScanner = new Scanner(primaryKey);
+            dataScanner.useDelimiter("_");
+            
+            merk = merk.replaceAll("\\s+", "");
+
+            if ( merk.equalsIgnoreCase(dataScanner.next()) && year.equalsIgnoreCase(dataScanner.next())) {
+                entry = dataScanner.nextInt();
+            }
+
+            data = bufferinput.readLine();
+        }
+        return entry;
+    }
+
+    public static String getYear() throws IOException {
+
+        Scanner scanner = new Scanner(System.in);
+        String year = scanner.nextLine();
+        boolean validationYear = false;
+
+        while(!validationYear) {
+
+            try {
+                Year.parse(year);
+                validationYear = true;
+            } catch ( Exception e ) {
+                System.err.println("Format Tahun Rilis Tidak Valid, Format=(YYYY)");
+                System.out.print("\nMasukan Kembali Tahun Rilis :");
+                validationYear = false;
+                year = scanner.nextLine();
+            }
+
+        }
+
+        return year;
 
     }
     
+
     public static void searchData() throws IOException {
 
         // Membaca database ada atau tidak
@@ -101,23 +209,71 @@ public class Main {
         String keyword[] = cariString.split("\\s+");
 
         // Cek Keyword di Database
-        cekDataDatabase(keyword);
+        cekDataDatabase(keyword,true);
         
         
     }
+    
+    
+    public static void readData() throws IOException {
+        FileReader fileinput;
+        BufferedReader bufferinput;
+        
+        try {
+            fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
+            bufferinput = new BufferedReader(fileinput);
+        } catch ( Exception e ) {
+            System.err.println("Database tidak ditemuka1n !");
+            System.err.println("Silahkan tambah data terlebih dahulu");
+            return;
+        }
 
+        
+        System.out.println("\n| No |\tTahun |\t  Merek   |\tLaunching Name        |\t\t Processor\t         |    Ram ( GB )     |\tStorage ( GB )    |\tBattery");
+        System.out.println("===========================================================================================================================================");
+        
+        String data = bufferinput.readLine();
+        int nomorData = 0;
 
-    public static void cekDataDatabase(String[] keywords) throws IOException {
+        while(data != null) {
+            nomorData++;
+            StringTokenizer stringToken = new StringTokenizer(data, ",");
+        
+            // Skip identifier
+            stringToken.nextToken();
+            System.out.printf("| %2d ", nomorData); // Nomor
+            System.out.printf("|\t%4s  ", stringToken.nextToken()); // Tahun
+            System.out.printf("|\t%-10s", stringToken.nextToken()); // Merek
+            System.out.printf("|\t%-20s  ", stringToken.nextToken()); // Launching Name
+            System.out.printf("|\t%-30s   ", stringToken.nextToken()); // Processor
+            System.out.printf("|\t%-10s   ", stringToken.nextToken()); // Ram
+            System.out.printf("|\t%-15s   ", stringToken.nextToken()); // Storage
+            System.out.printf("|\t%s  ", stringToken.nextToken()); // Baterai
+            
+            System.out.print("\n");
+
+            data = bufferinput.readLine();
+        }
+
+        System.out.println("===========================================================================================================================================");
+        System.out.println("Akhir Dari Database !");
+
+    }
+    
+
+    public static boolean cekDataDatabase(String[] keywords, boolean isDisplay) throws IOException {
 
         FileReader fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
         BufferedReader bufferinput = new BufferedReader(fileinput);
 
         int totalData = 0;
-        boolean isExist;
+        boolean isExist = false;
         String data = bufferinput.readLine();
 
-        System.out.println("\n| No |\tTahun |\tLaunching Name        |\tProcessor              |     Ram ( GB )      |\tStorage ( GB )    |\tBattery");
-        System.out.println("==========================================================================================================================");
+        if(isDisplay) {
+            System.out.println("\n| No |\tTahun |\t  Merek   |\tLaunching Name        |\t\t Processor\t         |    Ram ( GB )     |\tStorage ( GB )    |\tBattery");
+            System.out.println("===========================================================================================================================================");
+        }
         
 
         while(data != null) {
@@ -131,119 +287,40 @@ public class Main {
 
             // Menampilkan data jika keyword exist
             if(isExist) {
-
-                totalData++;
-                StringTokenizer stringToken = new StringTokenizer(data, ",");
-
-                stringToken.nextToken();
-                System.out.printf("| %2d ", totalData);
-                System.out.printf("|\t%4s  ", stringToken.nextToken());
-                System.out.printf("|\t%-20s  ", stringToken.nextToken());
-                System.out.printf("|\t%-20s   ", stringToken.nextToken());                    System.out.printf("|\t%-10s   ", stringToken.nextToken());
-                System.out.printf("|\t%-15s   ", stringToken.nextToken());
-                System.out.printf("|\t%s  ", stringToken.nextToken());
-                
-                System.out.print("\n");        
+                if(isDisplay) {
+                    totalData++;
+                    StringTokenizer stringToken = new StringTokenizer(data, ",");
+    
+                    // Skip identifier
+                    stringToken.nextToken();
+                    System.out.printf("| %2d ", totalData); // Nomor
+                    System.out.printf("|\t%4s  ", stringToken.nextToken()); // Tahun
+                    System.out.printf("|\t%-10s", stringToken.nextToken()); // Merek
+                    System.out.printf("|\t%-20s  ", stringToken.nextToken()); // Launching Name
+                    System.out.printf("|\t%-30s   ", stringToken.nextToken()); // Processor
+                    System.out.printf("|\t%-10s   ", stringToken.nextToken()); // Ram
+                    System.out.printf("|\t%-15s   ", stringToken.nextToken()); // Storage
+                    System.out.printf("|\t%s  ", stringToken.nextToken()); // Baterai
+                    
+                    System.out.print("\n");        
+                } else {
+                    break;
+                }
             }
 
             data = bufferinput.readLine();
 
         }
 
-        System.out.println("==========================================================================================================================");
-
-
+        if(isDisplay) {
+            System.out.println("===========================================================================================================================================");
+        }
+        
+        return isExist;
+        
     }
 
-
-    public static void readData() throws IOException {
-        FileReader fileinput;
-        BufferedReader bufferinput;
-
-        try {
-            fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
-            bufferinput = new BufferedReader(fileinput);
-        } catch ( Exception e ) {
-            System.err.println("Database tidak ditemuka1n !");
-            System.err.println("Silahkan tambah data terlebih dahulu");
-            return;
-        }
-
-        
-        System.out.println("\n| No |\tTahun |\tLaunching Name        |\tProcessor              |     Ram ( GB )      |\tStorage ( GB )    |\tBattery");
-        System.out.println("==========================================================================================================================");
-        
-        String data = bufferinput.readLine();
-        int nomorData = 0;
-
-        while(data != null) {
-            nomorData++;
-            StringTokenizer stringToken = new StringTokenizer(data, ",");
-        
-        
-            stringToken.nextToken();
-            System.out.printf("| %2d ", nomorData);
-            System.out.printf("|\t%4s  ", stringToken.nextToken());
-            System.out.printf("|\t%-20s  ", stringToken.nextToken());
-            System.out.printf("|\t%-20s   ", stringToken.nextToken());
-            System.out.printf("|\t%-10s   ", stringToken.nextToken());
-            System.out.printf("|\t%-15s   ", stringToken.nextToken());
-            System.out.printf("|\t%s  ", stringToken.nextToken());
-            
-            System.out.print("\n");
-
-            data = bufferinput.readLine();
-        }
-
-        System.out.println("==========================================================================================================================");
-        System.out.println("Akhir Dari Database !");
-
-    }
-
-
-    public static void readData2() throws IOException {
-        FileReader fileinput;
-        BufferedReader bufferinput;
-
-        try {
-            fileinput = new FileReader("JAVA CRUD/src/CRUD/database.txt");
-            bufferinput = new BufferedReader(fileinput);
-        } catch ( Exception e ) {
-            System.err.println("Database tidak ditemukan !");
-            System.err.println("Silahkan tambah data terlebih dahulu");
-            return;
-        }
-
-        
-        System.out.println("\n| No |\tTahun |\tMerek       |\tSeries       |\tLaunching Name");
-        System.out.println("===========================================================");
-        
-        String data = bufferinput.readLine();
-        int nomorData = 0;
-
-        while(data != null) {
-            nomorData++;
-            StringTokenizer stringToken = new StringTokenizer(data, ",");
-        
-        
-            stringToken.nextToken();
-            System.out.printf("| %2d ", nomorData);
-            System.out.printf("|\t%4s  ", stringToken.nextToken());
-            System.out.printf("|\t%-10s  ", stringToken.nextToken());
-            System.out.printf("|\t%-10s   ", stringToken.nextToken());
-            System.out.printf("|\t%s  ", stringToken.nextToken());
-            
-            System.out.print("\n");
-
-            data = bufferinput.readLine();
-        }
-
-        System.out.println("===========================================================");
-        System.out.println("Akhir Dari Database !");
-
-    }
-
-
+    
     public static boolean getYesorNo(String message) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("\n\n" + message + " (y/n)? ");
@@ -258,8 +335,8 @@ public class Main {
         return pilihanUser.equalsIgnoreCase("y");
 
     }
-
-
+    
+    
     public static void clearScreen() {
         try {
             if (System.getProperty("os.name").contains("Windows")) {
