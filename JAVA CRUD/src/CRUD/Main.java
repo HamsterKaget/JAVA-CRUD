@@ -1,7 +1,6 @@
 package CRUD;
 
 import java.io.*;
-import java.io.IOException;
 import java.time.Year;
 import java.util.Scanner;
 import java.util.StringTokenizer;
@@ -51,6 +50,7 @@ public class Main {
 
                     // Tambah Data
                     createData();
+                    readData();
                 break;
                 case "4":
                     System.out.println("\n=========================");
@@ -80,17 +80,18 @@ public class Main {
         
     }
     
-    // Method Untuk Membaca Data
+    // Method Untuk Membaca Data | 
     private static void readData() throws IOException {
         FileReader fileinput;
         BufferedReader bufferinput;
         
         try {
-            fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
+            fileinput = new FileReader("database.txt");
             bufferinput = new BufferedReader(fileinput);
         } catch ( Exception e ) {
             System.err.println("Database tidak ditemukan !");
             System.err.println("Silahkan tambah data terlebih dahulu");
+            createData();
             return;
         }
 
@@ -126,12 +127,12 @@ public class Main {
 
     }
     
-    // Method Untuk Mencari Data
+    // Method Untuk Mencari Data | [ cekDataDatabase(); ]
     private static void searchData() throws IOException {
 
         // Membaca database ada atau tidak
         try {
-            File file = new File("JAVA CRUD/src/CRUD/database2.txt"); 
+            File file = new File("database.txt"); 
         } catch ( Exception e ) {
             System.err.println("Database tidak ditemuka1n !");
             System.err.println("Silahkan tambah data terlebih dahulu");
@@ -151,10 +152,10 @@ public class Main {
         
     }
     
-    // Method Untuk Menambah Data
+    // Method Untuk Menambah Data | [ getYear(), cekDataDatabase(), getEntryPerYear(), getYesorNo();  ]
     private static void createData() throws IOException {
 
-        FileWriter fileOutput = new FileWriter("JAVA CRUD/src/CRUD/database2.txt",true);
+        FileWriter fileOutput = new FileWriter("database.txt",true);
         BufferedWriter bufferOutput = new BufferedWriter(fileOutput);
 
         Scanner scanner = new Scanner(System.in);
@@ -222,13 +223,28 @@ public class Main {
 
     //Method Untuk Menghapus data
     private static void deleteData() throws IOException {
+        // Ambil database original
+        File database = new File("database.txt");
+        FileReader fileinput = new FileReader(database);
+        BufferedReader bufferinput = new BufferedReader(fileinput);
+
+        // Buat database sementara
+        File tempDB = new File("tempDB.txt");
+        FileWriter fileOutput = new FileWriter(tempDB);
+        BufferedWriter bufferOutput = new BufferedWriter(fileOutput);
+
+
+        // Ambil UserInput untuk mendelete data
+
+        // Looping untuk membaca tiap data baris dan skip data yang akan di delete
+
 
     }
 
 
     // Method khusus untuk menangani kebutuhan tertentu untuk menunjang 5 method di atas
     public static long getEntryPerYear(String merk, String year) throws IOException {
-        FileReader fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
+        FileReader fileinput = new FileReader("database.txt");
         BufferedReader bufferinput = new BufferedReader(fileinput);
 
         long entry = 0;
@@ -280,7 +296,7 @@ public class Main {
 
     public static boolean cekDataDatabase(String[] keywords, boolean isDisplay) throws IOException {
 
-        FileReader fileinput = new FileReader("JAVA CRUD/src/CRUD/database2.txt");
+        FileReader fileinput = new FileReader("database.txt");
         BufferedReader bufferinput = new BufferedReader(fileinput);
 
         int totalData = 0;
